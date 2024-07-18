@@ -51,10 +51,16 @@ Function Get-XenforoNodes {
     if ($Id) {
         # Retrieve node details for the specified Id
         $result = Invoke-XenforoRequest -Method Get -Resource "/nodes/$($Id)"
+        if($result.psobject.Properties.Name.Contains("Error")){
+            return $result
+        }
         return Get-CustomObject -Node $result.node
     } else {
         # Retrieve details for all nodes
         $result = Invoke-XenforoRequest -Method Get -Resource "/nodes/"
+        if($result.psobject.Properties.Name.Contains("Error")){
+            return $result
+        }
         $objectArray = $result.nodes | ForEach-Object { Get-CustomObject -Node $_ }
         return $objectArray
     }
