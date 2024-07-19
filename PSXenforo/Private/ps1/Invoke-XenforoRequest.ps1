@@ -14,8 +14,8 @@ Function Invoke-XenforoRequest{
     $ApiKey = Get-XenforoApiKey
     $Uri = (Get-XenforoApiUrl) + $Resource
     $headers = @{
-        'XF-Api-Key' = $ApiKey        
-        'XF-Api-User' = $UserId
+        'XF-Api-Key'    = $ApiKey        
+        'XF-Api-User'   = $UserId
     }
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try {
