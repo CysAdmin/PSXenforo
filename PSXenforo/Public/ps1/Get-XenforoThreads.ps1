@@ -29,24 +29,27 @@ Retrieves the threads from the What's New Section in the API calling User's cont
 .NOTES
 Ensure you have the necessary Permissions on the API Calling User.
 #>
-Function Get-XenforoThreads{
+Function Get-XenforoThreads {
     [CmdletBinding(DefaultParameterSetName = "WhatsNewThreads")]
     param(
+        # ForumId is mandatory when using the ForumThreads parameter set
         [Parameter(Mandatory, ParameterSetName = "ForumThreads")]
         [ValidateScript({ $_ -as [int] -and $_ -ge 0 })]
         $ForumId,
 
+        # Page is optional and can be used with both parameter sets
         [Parameter(ParameterSetName = "ForumThreads")]
         [Parameter(ParameterSetName = "WhatsNewThreads")]
         [ValidateScript({ $_ -as [int] -and $_ -ge 0 })]
         [int]$Page
     )
-    
 
+    # Define the default properties to display
     $defaultDisplaySet = 'ThreadId', 'ViewCount', 'OwnerName', 'OwnerId', 'ReplyCount', 'Title'
     $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet', [string[]]$defaultDisplaySet)
     $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
 
+    # Function to convert the API thread objects to PowerShell custom objects with desired properties
     Function Get-CustomObject {
         param (
             $Thread
@@ -74,22 +77,27 @@ Function Get-XenforoThreads{
             OwnerId                 = $Thread.user_id
             ViewCount               = $Thread.view_count
             Title                   = $Thread.title
-
         }
+
+        # Add the default display properties to the custom object
         $customObject | Add-Member MemberSet PSStandardMembers $PSStandardMembers
         return $customObject
     }
-    if($PSCmdlet.ParameterSetName -eq "ForumThreads"){
+
+    # Determine the resource URL based on the parameter set
+    if ($PSCmdlet.ParameterSetName -eq "ForumThreads") {
         $resource = if ($Page) { "/forums/$($ForumId)/threads?page=$($Page)" } else { "/forums/$($ForumId)/threads" }
-        $result = Invoke-XenforoRequest -Method Get -Resource $resource      
-    }elseif($PSCmdlet.ParameterSetName -eq "WhatsNewThreads"){
+        $result = Invoke-XenforoRequest -Method Get -Resource $resource
+    } elseif ($PSCmdlet.ParameterSetName -eq "WhatsNewThreads") {
         $result = Invoke-XenforoRequest -Method Get -Resource "/threads/"
     }
 
-    if($result.psobject.Properties.Name.Contains("Error")){
+    # Check if the result contains an error and return it if present
+    if ($result.psobject.Properties.Name.Contains("Error")) {
         return $result
     }
 
+    # Convert the threads to custom objects and return them
     $objectArray = $result.threads | ForEach-Object { Get-CustomObject -Thread $_ }
-    return $objectArray 
+    return $objectArray
 }
