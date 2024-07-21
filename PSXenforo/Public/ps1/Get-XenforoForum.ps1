@@ -46,7 +46,7 @@ Function Get-XenforoForum {
         return $customObject
     }
 
-    # Retrieve node details for the specified Id
+    # Retrieve Forum details for the specified Id
     $result = Invoke-XenforoRequest -Method Get -Resource "/forums/$($Id)"
     if($result.psobject.Properties.Name.Contains("Error")){
         return $result
