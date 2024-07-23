@@ -22,8 +22,7 @@ The default display properties are ThreadTitle, Username, and PostDate.
 Function Get-XenforoPost {
     param(
         [Parameter(Mandatory)]
-        [ValidateScript({ $_ -as [int] -and $_ -ge 0 })]
-        $Id
+        [ValidateScript({$_ -ge 0 })] [int]$Id
     )
 
     # Define the default properties to display
