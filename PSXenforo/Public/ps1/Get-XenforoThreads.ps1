@@ -11,6 +11,9 @@ The ID of the forum from which to retrieve threads.
 .PARAMETER Page
 The page number to retrieve when pagination is needed.
 
+.PARAMETER UserId
+The User Id of the User which context is used for unread threads. Empty will result in current API User
+
 .EXAMPLE
 Get-XenforoThreads -ForumId 1
 
@@ -34,14 +37,25 @@ Function Get-XenforoThreads {
     param(
         # ForumId is mandatory when using the ForumThreads parameter set
         [Parameter(Mandatory, ParameterSetName = "ForumThreads")]
-        [ValidateScript({ $_ -as [int] -and $_ -ge 0 })]
-        $ForumId,
+        [ValidateScript({$_ -ge 0 })]
+        [int]$ForumId,
 
         # Page is optional and can be used with both parameter sets
         [Parameter(ParameterSetName = "ForumThreads")]
         [Parameter(ParameterSetName = "WhatsNewThreads")]
+        [Parameter(ParameterSetName = "UnreadThreads")]
         [ValidateScript({ $_ -as [int] -and $_ -ge 0 })]
-        [int]$Page
+        [int]$Page,
+
+        [Parameter(Mandatory, ParameterSetName = "UnreadThreads")]
+        [switch]$UnreadThreads,
+
+        [Parameter(Mandatory, ParameterSetName = "Pagination")]
+        [Parameter(ParameterSetName = "UnreadThreads")]
+        [switch]$Pagination,
+
+        [ValidateScript({$_ -ge 0 })]
+        [int]$UserId
     )
 
     # Define the default properties to display
@@ -87,9 +101,21 @@ Function Get-XenforoThreads {
     # Determine the resource URL based on the parameter set
     if ($PSCmdlet.ParameterSetName -eq "ForumThreads") {
         $resource = if ($Page) { "/forums/$($ForumId)/threads?page=$($Page)" } else { "/forums/$($ForumId)/threads" }
-        $result = Invoke-XenforoRequest -Method Get -Resource $resource
+        $result = Invoke-XenforoRequest -Method Get -Resource $resource -UserId $UserId
     } elseif ($PSCmdlet.ParameterSetName -eq "WhatsNewThreads") {
-        $result = Invoke-XenforoRequest -Method Get -Resource "/threads/"
+        $resource = if ($Page) { "/threads?unread=true&page=$($Page)" } else { "/threads?unread=true"}
+        $result = Invoke-XenforoRequest -Method Get -Resource $resource -UserId $UserId
+    }elseif ($PSCmdlet.ParameterSetName -eq "UnreadThreads"){
+        $resource = if ($Page) { "/threads?unread=true&page=$($Page)" } else { "/threads?unread=true"}
+        $result = Invoke-XenforoRequest -Method Get -Resource $resource -UserId $UserId
+        if($Pagination){
+            return $result.pagination
+        }
+        
+    }elseif ($PSCmdlet.ParameterSetName -eq "Pagination"){
+        $resource = "/threads?unread=true"
+        $result = Invoke-XenforoRequest -Method Get -Resource $resource -UserId $UserId
+        return $result.pagination
     }
 
     # Check if the result contains an error and return it if present
