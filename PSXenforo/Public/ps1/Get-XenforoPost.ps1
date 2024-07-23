@@ -1,18 +1,25 @@
 <#
 .SYNOPSIS
-Retrieves a specific post from a Xenforo forum using its ID.
+Retrieves specific post(s) from a Xenforo forum.
 
 .DESCRIPTION
-The Get-XenforoPost function queries a Xenforo forum to retrieve information about a specific post by its ID. 
+The Get-XenforoPost function queries a Xenforo forum to retrieve information about a specific post by its ID or all posts from a specific thread by its Thread ID.
 It converts the API response into custom PowerShell objects with specific properties to enhance readability and usability.
 
 .PARAMETER Id
 The ID of the post to retrieve. Must be a non-negative integer.
 
+.PARAMETER ThreadId
+The ID of the thread from which to retrieve all posts. Must be a non-negative integer.
+
 .EXAMPLE
 PS> Get-XenforoPost -Id 12345
-
 Retrieves the post with ID 12345 from the Xenforo forum and displays its details, such as the thread title, username, and post date.
+
+.EXAMPLE
+PS> Get-XenforoPost -ThreadId 67890
+Retrieves all posts from the thread with ID 67890 from the Xenforo forum and displays their details, such as the thread title, username, and post date.
+
 
 .NOTES
 The function relies on Invoke-XenforoRequest to perform the actual API call to the Xenforo forum.
@@ -21,12 +28,16 @@ The default display properties are ThreadTitle, Username, and PostDate.
 #>
 Function Get-XenforoPost {
     param(
-        [Parameter(Mandatory)]
-        [ValidateScript({$_ -ge 0 })] [int]$Id
+        [Parameter(Mandatory, ParameterSetName = "SinglePost")]
+        [ValidateScript({$_ -ge 0 })] [int]$Id,
+
+        [Parameter(Mandatory, ParameterSetName = "PostsFromThread")]
+        [ValidateScript({$_ -ge 0 })] [int]$ThreadId        
     )
+    # ParameterSetName FromThreadId -> Return Posts From Specific Thread threads/{id}/  *with_posts	bool	If specified, the response will include a page of posts.*
 
     # Define the default properties to display
-    $defaultDisplaySet = 'ThreadTitle', 'Username', 'PostDate'
+    $defaultDisplaySet = 'ThreadId', 'Username', 'PostDate'
     $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet('DefaultDisplayPropertySet', [string[]]$defaultDisplaySet)
     $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
 
@@ -54,14 +65,18 @@ Function Get-XenforoPost {
         return $customObject
     }
 
-    $result = Invoke-XenforoRequest -Method Get -Resource "/posts/$($Id)"
+    # Determine resource based on parameter set
+    $resource = if ($PSCmdlet.ParameterSetName -eq "SinglePost") { "/posts/$($Id)" } else { "/threads/$($ThreadId)?with_posts=true" }
+    $result = Invoke-XenforoRequest -Method Get -Resource $resource
 
     # Check if the result contains an error and return it if present
     if ($result.psobject.Properties.Name.Contains("Error")) {
         return $result
     }
 
-    # Convert the threads to custom objects and return them
-    $objectArray = $result.post | ForEach-Object { Get-CustomObject -Post $_ }
+    # Convert the posts to custom objects and return them
+    $posts = if ($PSCmdlet.ParameterSetName -eq "SinglePost") { $result.post } else { $result.posts }
+    $objectArray = $posts | ForEach-Object { Get-CustomObject -Post $_ }
+    
     return $objectArray
 }
