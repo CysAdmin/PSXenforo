@@ -12,7 +12,7 @@ Function Invoke-XenforoRequest{
         [string]$UserId = 1,
 
         [ValidateNotNullOrEmpty()]
-        [string]$Data = @{}
+        [string]$Data
     )
     $ApiKey = Get-XenforoApiKey
     $Uri = (Get-XenforoApiUrl) + $Resource
@@ -22,7 +22,12 @@ Function Invoke-XenforoRequest{
     }
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try {
-        $result = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $headers -Body $Data
+        if($Data){
+            $result = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $headers -Body $Data    
+        }else{
+            $result = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $headers
+        }
+        
     }
     catch {
         if($_.ErrorDetails.Message){
