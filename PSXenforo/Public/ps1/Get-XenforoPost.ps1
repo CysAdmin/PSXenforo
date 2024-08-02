@@ -54,6 +54,7 @@ Function Get-XenforoPost {
             LastEditDate    = [System.DateTimeOffset]::FromUnixTimeSeconds($Post.last_edit_date).DateTime
             Message         = $Post.Message
             PostDate        = [System.DateTimeOffset]::FromUnixTimeSeconds($Post.post_date).DateTime
+            PostId          = $Post.post_id
             ThreadId        = $Post.thread_id
             ThreadTitle     = $Post.Thread.title
             UserId          = $Post.user_id
