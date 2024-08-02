@@ -12,7 +12,7 @@ Function Invoke-XenforoRequest{
         [string]$UserId = 1,
 
         [ValidateNotNullOrEmpty()]
-        [string]$Data
+        [object]$Data
     )
     $ApiKey = Get-XenforoApiKey
     $Uri = (Get-XenforoApiUrl) + $Resource
