@@ -9,11 +9,15 @@ Function Add-XenforoPost{
         [Parameter(Mandatory)] 
         [ValidateNotNullOrEmpty()] [string] $UserId
     )
-
-    $Data = @{
-        "thread_id" = $Thread
-        "message"   = $Content
+    begin{
+        $Data = @{
+            "thread_id" = $ThreadId
+            "message"   = $Content
+        }        
+    }    
+    process{
+        return Invoke-XenforoRequest -Method Post -Resource "/posts" -Data $Data -UserId $UserId
     }
     
-    return Invoke-XenforoRequest -Method Post -Resource "/posts" -Data $Data -UserId $UserId
+    
 }
