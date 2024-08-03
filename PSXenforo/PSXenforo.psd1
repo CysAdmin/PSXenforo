@@ -73,13 +73,14 @@ FunctionsToExport = @("Add-XenforoAlert", "Add-XenforoPost", "Add-XenforoThread"
 "Get-XenforoForum", "Get-XenforoNodes", "Get-XenforoPost", "Get-XenforoThreads", "Get-XenforoUsers", "Set-XenforoThreadRead" )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = '*'
+CmdletsToExport = @("Add-XenforoAlert", "Add-XenforoPost", "Add-XenforoThread", "Add-XenforoUser", "Connect-XenforoApi", "Get-XenforoAlerts", 
+"Get-XenforoForum", "Get-XenforoNodes", "Get-XenforoPost", "Get-XenforoThreads", "Get-XenforoUsers", "Set-XenforoThreadRead")
 
 # Variables to export from this module
 VariablesToExport = '*'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = '*'
+AliasesToExport = @()
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
